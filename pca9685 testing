@@ -1,0 +1,43 @@
+
+#in this file I will try to determine if i cna use the pca9685 on an i2c bus other than bus 8
+import time
+
+#this is for the adafruit servo and motor controler board
+
+from board import SCL, SDA #may not be needed anymore
+import busio
+from adafruit_extended_bus import ExtendedI2C as I2C
+from adafruit_motor import servo
+from adafruit_pca9685 import PCA9685
+
+
+i2c2= I2C(1) #busio.I2C(SCL, SDA) #
+print(i2c)
+print(i2c2)
+
+# Create a simple PCA9685 class instance.
+pca = PCA9685(i2c2) #i2c2)
+pca.frequency = 50
+#setting the turning and motor servos as servo 1 and servo 2 
+servo1 = servo.Servo(pca.channels[0], actuation_range=10) #this will be how I deal with turning, 0 is right, 5 is straight, 10 is left
+servo2 = servo.Servo(pca.channels[1],min_pulse = 400,max_pulse=2400)#same as before write 80 to intialize/set motors to offf, 100 seems about right for driving if it is jnot i will make the range smaller
+servo2.angle = 80
+time.sleep(4)
+print("It should beep")
+#functions that tell the adafruit servo controller how to command the motors, now you have to specify motor direction and wheel direction seperatly.
+def Left():
+    servo1.angle = 10
+def Right():
+    servo1.angle = 0
+def Straight():
+    servo1.angle = 5
+def Forward():
+    servo2.angle = 100
+def Back():
+    servo2.angle = 60
+def Stop():
+    servo2.angle = 80
+
+Right()
+time.sleep(5)
+Straight()
