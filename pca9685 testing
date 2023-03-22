@@ -12,7 +12,6 @@ from adafruit_pca9685 import PCA9685
 
 
 i2c2= I2C(1) #busio.I2C(SCL, SDA) #
-print(i2c)
 print(i2c2)
 
 # Create a simple PCA9685 class instance.
