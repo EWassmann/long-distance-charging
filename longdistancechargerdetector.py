@@ -4,10 +4,14 @@ import cv2 as cv
 import numpy as np 
 import imutils
 from imutils.video import VideoStream
+
 #this is for the intel stereo depth camera
+
 import pyrealsense2 as rs
 import time
+
 #this is for the adafruit servo and motor controler board
+
 from board import SCL, SDA #may not be needed anymore
 import busio
 from adafruit_extended_bus import ExtendedI2C as I2C
@@ -19,6 +23,8 @@ from multiprocessing import Value
 import geopy.distance
 import json
 from geographiclib.geodesic import Geodesic
+
+#temporarily commented out the bno055 may be fried if it was writted to insted of  the pca9685
 
 i2c = I2C(8) #the imu will use i2c bus 8 (in order to be closer to the front) and the motor controller will use i2c bus 1- a lot is going to need to be changed for this
 #this is the setup code for the adafruit imu
@@ -35,18 +41,22 @@ chargerlat = chargerdict['latitude']
 chargerlon = chargerdict['longetude']
 chargerlocation = (chargerlat,chargerlon) 
 
-locationlat.value,locationlon.value = chargerlocation 
+# locationlat.value,locationlon.value = chargerlocation 
 
 #in the other code i do not set the bus, it only takes the scl and sda inputs from the PCA 9685 class, so here because i am dealing woith two diffrent devices i am individually setting them - May not work
-i2c2 = I2C(1) #busio.I2C(SCL, SDA)
+i2c2= I2C(1)#busio.I2C(SCL, SDA) #
+print(i2c)
+print(i2c2)
+
 # Create a simple PCA9685 class instance.
-pca = PCA9685(i2c2)
+pca = PCA9685(i2c2) #i2c2)
 pca.frequency = 50
 #setting the turning and motor servos as servo 1 and servo 2 
 servo1 = servo.Servo(pca.channels[0], actuation_range=10) #this will be how I deal with turning, 0 is right, 5 is straight, 10 is left
 servo2 = servo.Servo(pca.channels[1],min_pulse = 400,max_pulse=2400)#same as before write 80 to intialize/set motors to offf, 100 seems about right for driving if it is jnot i will make the range smaller
 servo2.angle = 80
 time.sleep(4)
+print("It should beep")
 #functions that tell the adafruit servo controller how to command the motors, now you have to specify motor direction and wheel direction seperatly.
 def Left():
     servo1.angle = 10
@@ -138,7 +148,7 @@ def Gotocharger():
         bearinghigh = bearing + 15
         if bearinghigh > 360:
             bearinghigh = bearinghigh - 360
-        
+        print("trying to write")
         if bearinglow < bearinghigh:
             if yaw.value >= bearinglow and yaw.value <= bearinghigh:
                 Straight()
@@ -195,13 +205,14 @@ def Finalapproach(show):
     config.enable_stream(rs.stream.color, 640, 480, rs.format.bgr8, 30)
     pipeline.start(config)
     #setting up the servo and motor controller
-    #i2c = I2C(8)
-    i2c = busio.I2C(SCL, SDA)
-    # Create a simple PCA9685 class instance.
-    pca = PCA9685(i2c)
-    pca.frequency = 50
-    servo1 = servo.Servo(pca.channels[0], actuation_range=10) #this will be how I deal with turning, 0 is right, 5 is straight, 10 is left
-    servo2 = servo.Servo(pca.channels[1],min_pulse = 400,max_pulse=2400)#same as before write 80 to intialize/set motors to offf, 100 seems about right for driving if it is jnot i will make the range smaller
+    #all below is done above, should not be needed
+    #i2c = I2C(1)
+    # i2c = busio.I2C(SCL, SDA)
+    # # Create a simple PCA9685 class instance.
+    # pca = PCA9685(i2c)
+    # pca.frequency = 50
+    # servo1 = servo.Servo(pca.channels[0], actuation_range=10) #this will be how I deal with turning, 0 is right, 5 is straight, 10 is left
+    # servo2 = servo.Servo(pca.channels[1],min_pulse = 400,max_pulse=2400)#same as before write 80 to intialize/set motors to offf, 100 seems about right for driving if it is jnot i will make the range smaller
     servo2.angle = 80
     time.sleep(4)
     # RUNS FOREVER
@@ -277,7 +288,7 @@ def Finalapproach(show):
                     servo2.angle = 70 #hopefully this makes it back up
             else:
                 if avedepth >1.5: #this if shouldent be needed as it is contained in the else
-                    #print("its trying to write")
+                    print("its trying to write")
                     if 240<=x<=440:
                         servo1.angle = 5
                         servo2.angle = 100
@@ -378,7 +389,7 @@ if __name__ == "__main__":
     time.sleep(5)
     print("measuring distance")
 
-    Gotocharger(1)
+    Gotocharger()
     Stop() #- unsure about this and the next one, make sure they are needed.
     Straight()
     Finalapproach(1)
